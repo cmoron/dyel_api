@@ -1,0 +1,6 @@
+Run a mongodb instance with docker:
+    pacman -Syu docker
+    usermod -aG docker <user>
+    docker pull mongo:latest
+    docker run -p 27017:27017 --name zn_mongo -d mongo
+    yarn run watch
