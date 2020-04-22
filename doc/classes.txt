@@ -1,0 +1,23 @@
+Session:
+  - id: string
+  - name: string
+  - groups: Group[]
+
+Group:
+  - id: string
+  - repeat: number
+  - blocks: Block[]
+
+Block:
+  - id: string
+  - name: string
+  - exercises: Map<Repeat, Exercise>
+
+Exercise:
+  - id: string
+  - type: ExerciseType
+  - repeat: string
+
+ExerciseType:
+  - id: string
+  - name: string

@@ -1,0 +1,31 @@
+Sessions API documentation :
+
+GET    api/sessions         : list existing sessions
+GET    api/session/:id      : display session identified by id
+POST   api/session/         : add new session
+PUT    api/session/:id      : update session identified by id
+DELETE api/session/:id      : delete session identified by id
+
+GET    api/blocks           : list existing blocks
+GET    api/block/:id        : display block identified by id
+POST   api/block/           : add new block
+PUT    api/block/:id        : update block identified by id
+DELETE api/block/:id        : delete block identified by id
+
+GET    api/groups           : list existing groups
+GET    api/group/:id        : display group identified by id
+POST   api/group/           : add new group
+PUT    api/group/:id        : update group identified by id
+DELETE api/group/:id        : delete group identified by id
+
+GET    api/exercises        : list existing exercises
+GET    api/exercise/:id     : display exercise identified by id
+POST   api/exercise/        : add new exercise
+PUT    api/exercise/:id     : update exercise identified by id
+DELETE api/exercise/:id     : delete exercise identified by id
+
+GET    api/exercisetypes    : list existing exercisetypes
+GET    api/exercisetype/:id : display exercisetype identified by id
+POST   api/exercisetype/    : add new exercisetype
+PUT    api/exercisetype/:id : update exercisetype identified by id
+DELETE api/exercisetype/:id : delete exercisetype identified by id
