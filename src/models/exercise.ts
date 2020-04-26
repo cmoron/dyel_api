@@ -1,9 +1,7 @@
-import mongoose = require("mongoose");
-import ExerciseType from "./exerciseType";
-import ObjectId = mongoose.Schema.Types.ObjectId;
+import mongoose from "mongoose";
 
 export const ExerciseSchema =  new mongoose.Schema({
-    type: { type: ObjectId, required: true },
+    name: { type: String, required: true },
     repeat: { type: String, required: true }
 });
 

@@ -32,8 +32,6 @@ export let deleteSession = (req: Request, res: Response) => {
 }
 
 export let updateSession = (req: Request, res: Response) => {
-    console.log(req.body);
-
     let session = Session.findByIdAndUpdate(
         req.params.id,
         req.body,
@@ -48,7 +46,6 @@ export let updateSession = (req: Request, res: Response) => {
 }
 
 export let addSession = (req: Request, res: Response) => {
-
     var session = new Session(req.body);
     session.save((err: any) => {
         if (err) {

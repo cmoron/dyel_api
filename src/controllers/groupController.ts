@@ -32,8 +32,6 @@ export let deleteGroup = (req: Request, res: Response) => {
 }
 
 export let updateGroup = (req: Request, res: Response) => {
-    console.log(req.body);
-
     let group = Group.findByIdAndUpdate(
         req.params.id,
         req.body,
@@ -58,4 +56,3 @@ export let addGroup = (req: Request, res: Response) => {
         }
     });
 }
-

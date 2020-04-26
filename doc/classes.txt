@@ -11,13 +11,9 @@ Group:
 Block:
   - id: string
   - name: string
-  - exercises: Map<Repeat, Exercise>
+  - exercises: Exercise[]
 
 Exercise:
   - id: string
-  - type: ExerciseType
-  - repeat: string
-
-ExerciseType:
-  - id: string
   - name: string
+  - repeat: string

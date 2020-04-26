@@ -32,8 +32,6 @@ export let deleteExercise = (req: Request, res: Response) => {
 }
 
 export let updateExercise = (req: Request, res: Response) => {
-    console.log(req.body);
-
     let exercise = Exercise.findByIdAndUpdate(
         req.params.id,
         req.body,

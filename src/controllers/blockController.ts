@@ -32,8 +32,6 @@ export let deleteBlock = (req: Request, res: Response) => {
 }
 
 export let updateBlock = (req: Request, res: Response) => {
-    console.log(req.body);
-
     let block = Block.findByIdAndUpdate(
         req.params.id,
         req.body,
