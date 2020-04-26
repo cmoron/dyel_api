@@ -12,7 +12,6 @@ async function handleExercises(blockId: String, exercises: any) {
         });
 
         let id = exercise.save().then(ex => {
-            //console.log(ex._id);
             Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex._id}})
             .catch((err: any) => {
                 console.error("Error adding exercises to block.", err);
@@ -24,65 +23,85 @@ async function handleExercises(blockId: String, exercises: any) {
     }
 }
 
-async function handleBlocks(blocks: any) {
-    for (let blockData of blocks) {
+async function handleBlocks(sessionData: any, dbSessionId: string) {
+    for (let blockData of sessionData.blocks) {
 
         let block = new Block({
             "name": blockData.name,
-            "exercises" : []
+            "exercises" : [],
+            "session": dbSessionId
         });
 
         block.save()
-            .then(b => {
-                if (null != blockData.exercises) {
-                    handleExercises(b._id, blockData.exercises);
-                }
-            })
-            .catch((err: any) => {
-                console.error("Error saving Block.", err);
-            });
+        .then(dbBlock => {
+            if (null != blockData.exercises) {
+                handleExercises(dbBlock.id, blockData.exercises);
+            }
+        })
+        .catch((err: any) => {
+            console.error("Error saving Block.", err);
+        });
     }
 }
 
-const samples = async function() {
+async function handleGroups(sessionData: any, dbSessionId: string) {
+
+    for(let groupData of sessionData.groups) {
+        let group = new Group({
+            "repeat": groupData.repeat,
+            "blocks": [],
+            "session": dbSessionId
+        });
+
+        group.save()
+        .then(dbGroup => {
+            for (let blockName of groupData.blocks) {
+                Block.findOne({ name: blockName, session: dbSessionId }).exec( (err, dbBlock) => {
+                    if (null != dbBlock) {
+                        dbGroup.updateOne({ $push: { 'blocks': dbBlock.id }})
+                        .catch( err => console.error("Group update failed.", err));
+                    } else {
+                        console.log("Cannot find " + blockName + " for session " + sessionData.name);
+                    }
+                });
+            }
+        })
+        .catch(err => { console.error("Error saving group.", err)});
+    }
+}
+
+async function samples() {
     console.log("Create sample data");
 
+
     /* Clear database */
-    await Exercise.deleteMany({}, () => { console.log("Exercises  cleared")});
-    await Block.deleteMany({}, () => { console.log("Blocks  cleared")});
+    await Session.deleteMany({}, () => { console.log("Sessions cleared")});
+    await Group.deleteMany({}, () => { console.log("Groups cleared")});
+    await Block.deleteMany({}, () => { console.log("Blocks cleared")});
+    await Exercise.deleteMany({}, () => { console.log("Exercises cleared")});
 
     /* Read sessions from json */
     for (let sessionData of data.sessions) {
-        //console.log(sessionData);
-
-        if (null != sessionData.blocks) {
-            handleBlocks(sessionData.blocks);
-        }
-
-        //if (null != sessionData.groups) {
-        //for (let group of sessionData.groups) {
-        //console.log(group);
-        //}
-        //}
-
         let session = new Session({
             "name": sessionData.name,
-            "groups": []
         });
 
-        session.save();
+        session.save()
+        .then(dbSession => {
+
+            /* Use async/await : see https://blog.engineering.publicissapient.fr/2017/11/14/asyncawait-une-meilleure-facon-de-faire-de-lasynchronisme-en-javascript/ */
+
+            if (null != sessionData.blocks) {
+                handleBlocks(sessionData, dbSession.id);
+            }
+            if (null != sessionData.groups) {
+                handleGroups(sessionData, dbSession.id);
+            }
+        })
+        .catch(err => {
+            console.error("Error saving session.", err);
+        });
     }
-
-    //await Exercise.find((err: any, exercises: any) => {
-        //console.log(exercises);
-        //if (err) console.error(err);
-        //else {
-            //for (let ex of exercises) {
-                //console.log(ex);
-            //}
-        //}
-    //});
-
 }
 
 export default samples;

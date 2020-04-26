@@ -7,11 +7,13 @@ Group:
   - id: string
   - repeat: number
   - blocks: Block[]
+  - session: string
 
 Block:
   - id: string
   - name: string
   - exercises: Exercise[]
+  - session: string
 
 Exercise:
   - id: string
