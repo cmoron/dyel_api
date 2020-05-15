@@ -4,38 +4,74 @@ import Group from "./../models/group";
 import Session from "./../models/session";
 import data from './wodz.json';
 
-async function handleExercises(blockId: String, exercises: any) {
-    for (let exerciseData of exercises) {
+/*
+** Handle exercise :
+** Save exercise in database.
+*/
+function handleExercise(exerciseData: any) {
+    return new Promise((resolve, reject) => {
         let exercise = new Exercise({
             "name": exerciseData.name,
             "repeat": exerciseData.repeat
         });
 
-        let id = exercise.save().then(ex => {
-            Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex._id}})
+        exercise.save().then((ex: any) => {
+            resolve(ex);
+        })
+        .catch((err: any) => {
+            reject(err);
+        });
+    });
+}
+
+function handleExercises(blockId: String, exercises: any) {
+
+    let results: any[] = new Array<any>();
+    let errors: any[] = new Array<any>();
+
+    for (let exerciseData of exercises) {
+        handleExercise(exerciseData).then((ex: any) => {
+            console.log("Successfuly register exercise : " + ex.id);
+            console.log(results);
+            results.push(ex);
+
+            Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex.id}})
             .catch((err: any) => {
                 console.error("Error adding exercises to block.", err);
+                errors.push(err);
             });
         })
         .catch((err: any) => {
-            console.error("Error saving Exercise.", err);
+            console.log("Error registering exercise: " + err);
+            errors.push(err);
         });
     }
+
+    return new Promise((resolve, reject) => {
+        if (errors.length == 0) {
+            resolve(results);
+        } else {
+            reject(errors);
+        }
+    });
 }
 
-async function handleBlocks(sessionData: any, dbSessionId: string) {
+function handleBlocks(sessionData: any, dbSessionId: string) {
     for (let blockData of sessionData.blocks) {
 
         let block = new Block({
             "name": blockData.name,
             "exercises" : [],
-            "session": dbSessionId
         });
 
-        block.save()
+        let res = block.save()
         .then(dbBlock => {
+            console.log("Successfuly register block: " + dbBlock.id + " with name: " + blockData.name);
             if (null != blockData.exercises) {
-                handleExercises(dbBlock.id, blockData.exercises);
+                handleExercises(dbBlock.id, blockData.exercises)
+                .then((res: any) => {
+                    console.log("Successfuly register blocks exercises.");
+                });
             }
         })
         .catch((err: any) => {
@@ -44,8 +80,7 @@ async function handleBlocks(sessionData: any, dbSessionId: string) {
     }
 }
 
-async function handleGroups(sessionData: any, dbSessionId: string) {
-
+function handleGroups(sessionData: any, dbSessionId: string) {
     for(let groupData of sessionData.groups) {
         let group = new Group({
             "repeat": groupData.repeat,
@@ -53,7 +88,7 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
             "session": dbSessionId
         });
 
-        group.save()
+        let res = group.save()
         .then(dbGroup => {
             for (let blockName of groupData.blocks) {
                 Block.findOne({ name: blockName, session: dbSessionId }).exec( (err, dbBlock) => {
@@ -73,7 +108,6 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
 async function samples() {
     console.log("Create sample data");
 
-
     /* Clear database */
     await Session.deleteMany({}, () => { console.log("Sessions cleared")});
     await Group.deleteMany({}, () => { console.log("Groups cleared")});
@@ -91,11 +125,11 @@ async function samples() {
 
             /* Use async/await : see https://blog.engineering.publicissapient.fr/2017/11/14/asyncawait-une-meilleure-facon-de-faire-de-lasynchronisme-en-javascript/ */
 
-            if (null != sessionData.blocks) {
+            if (null != sessionData.blocks && null != sessionData.groups) {
                 handleBlocks(sessionData, dbSession.id);
-            }
-            if (null != sessionData.groups) {
+                //console.log(blocks);
                 handleGroups(sessionData, dbSession.id);
+                //console.log(groups);
             }
         })
         .catch(err => {

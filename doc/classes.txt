@@ -1,7 +1,6 @@
 Session:
   - id: string
   - name: string
-  - groups: Group[]
 
 Group:
   - id: string
@@ -13,7 +12,7 @@ Block:
   - id: string
   - name: string
   - exercises: Exercise[]
-  - session: string
+  - session: string # Block is contextual to session (some blocks can have the same name in different sessions)
 
 Exercise:
   - id: string
