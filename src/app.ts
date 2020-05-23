@@ -21,6 +21,13 @@ const app = express();
 app.use(express.json());
 app.set("port", process.env.PORT || 3000);
 
+/* Proxy to allow request from localhost view app (dev mode) */
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "http://localhost"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
 /* Routes */
 app.use(routes);
 

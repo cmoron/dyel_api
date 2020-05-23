@@ -18,8 +18,7 @@ async function handleExercise(exerciseData: any) {
 
         exercise.save().then((ex: any) => {
             resolve(ex);
-        })
-        .catch((err: any) => {
+        }).catch((err: any) => {
             reject(err);
         });
     });
@@ -40,16 +39,14 @@ async function handleExercises(blockId: String, exercises: any) {
             await handleExercise(exerciseData).then((ex: any) => {
                 results.push(ex);
 
-                Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex.id}})
-                    .catch((err: any) => {
-                        console.error("Error adding exercises to block.", err);
-                        errors.push(err);
-                    });
-            })
-                .catch((err: any) => {
-                    console.log("Error registering exercise: " + err);
+                Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex.id}}).catch((err: any) => {
+                    console.error("Error adding exercises to block.", err);
                     errors.push(err);
                 });
+            }).catch((err: any) => {
+                console.log("Error registering exercise: " + err);
+                errors.push(err);
+            });
         }
 
         if (errors.length == 0) {
@@ -164,6 +161,7 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
     return new Promise(async (resolve, reject) => {
         for(let groupData of sessionData.groups) {
             await handleGroup(groupData, dbSessionId).then((databaseGroup: any) => {
+                /* Iterate through group blobks and add them in database group object. */
                 for (let blockName of groupData.blocks) {
                     updateGroupWithBlock(databaseGroup, blockName, dbSessionId);
                 }
@@ -201,11 +199,10 @@ async function samples() {
             "name": sessionData.name,
         });
 
+        /* Save session into database */
         session.save().then(async (dbSession) => {
-            if (null != sessionData.blocks && null != sessionData.groups) {
-                await handleBlocks(sessionData, dbSession.id);
-                await handleGroups(sessionData, dbSession.id);
-            }
+            await handleBlocks(sessionData, dbSession.id);
+            await handleGroups(sessionData, dbSession.id);
         }).catch(err => {
             console.error("Error saving session.", err);
         });
