@@ -41,7 +41,7 @@ export let addUser = (req: Request, res: Response) => {
                     name,
                     username,
                     email,
-                    password
+                    hash
                 });
 
                 user.save().then(user => {
