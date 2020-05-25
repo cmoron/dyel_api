@@ -1,13 +1,13 @@
-/*
- * Router middleware
- */
-let router = require('express').Router();
-
+/* Router middleware */
+import express from "express";
 import * as sessionController from "../controllers/sessionController";
 import * as groupController from "../controllers/groupController";
 import * as blockController from "../controllers/blockController";
 import * as exerciseController from "../controllers/exerciseController";
+import * as userController from "../controllers/userController";
 import { Request, Response } from "express";
+
+let router = express.Router();
 
 router.get("/", (req: Request, res: Response) => res.send("hello wodz !"));
 
@@ -34,5 +34,12 @@ router.get("/api/exercise/:id", exerciseController.getExercise);
 router.post("/api/exercise", exerciseController.addExercise);
 router.put("/api/exercise/:id", exerciseController.updateExercise);
 router.delete("/api/exercise/:id", exerciseController.deleteExercise);
+
+/**
+ * @route POST api/user
+ * @desc register new user
+ * @access Public
+ */
+router.post('/api/user', userController.addUser);
 
 export default router;

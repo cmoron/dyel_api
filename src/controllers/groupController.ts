@@ -46,7 +46,6 @@ export let updateGroup = (req: Request, res: Response) => {
 }
 
 export let addGroup = (req: Request, res: Response) => {
-
     var group = new Group(req.body);
     group.save((err: any) => {
         if (err) {
