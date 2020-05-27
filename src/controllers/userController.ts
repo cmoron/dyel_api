@@ -1,20 +1,19 @@
 import { Request, Response } from "express";
 import User from '../models/user';
 import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import { 
+    API_ERROR_CODE,
+    API_SUCCESS_CODE,
+    API_NOT_FOUND_CODE } from "../config/configuration"
 
 /*
  * Function hashPassword.
  * Returns hashed password with bcryptjs.
  */
-async function hashPassword(password: string) {
-    const saltRounds = 10;
-
-    return await new Promise((resolve, reject) => {
-        bcrypt.hash(password, saltRounds, (err: Error, hash: string) => {
-            if (err) reject();
-            else resolve(hash);
-        });
-    });
+function hashPassword(password: string) {
+    const SALT_ROUNDS = 10;
+    return bcrypt.hashSync(password, SALT_ROUNDS);
 }
 
 /*
@@ -28,26 +27,27 @@ export let addUser = async (req: Request, res: Response) => {
 
     /* Check password and confirmation password match. */
     if (password != confirm_password) {
-        return res.status(400).json ({ message: "Passwords do not match." });
+        return res.status(API_ERROR_CODE).json ({
+            sucess: false,
+            message: "Passwords do not match." }
+        );
     }
 
-    const hash = await hashPassword(password);
+    const hash = hashPassword(password);
+    let user = new User({ name, username, email, password: hash });
 
-    let user = new User({
-        name: name,
-        username: username,
-        email: email,
-        password: hash
-    });
+    user.save().then((user: User) => {
 
-    user.save().then(user => {
-        console.log("user saved");
-        return res.status(201).json({
+        return res.status(API_SUCCESS_CODE).json({
             success: true,
             message: "User is now registered."
         });
+
     }).catch(err => {
+
+        /* Default error message */
         let errorMessage = "Error saving user."
+        console.log(err);
 
         /* Handle duplication errors. */
         if (err.name === 'MongoError' && err.code == 11000) {
@@ -57,9 +57,42 @@ export let addUser = async (req: Request, res: Response) => {
                 errorMessage = 'email ' + email + ' already exists';
             }
         }
-        return res.status(400).json({
+
+        return res.status(API_ERROR_CODE).json({
             success: false,
             message: errorMessage
         });
     });
 };
+
+/*
+ * Log user in
+ * Check username and password 
+ * Returns the user data if user and password are OK.
+ */
+export let login = async (req: Request, res: Response) => {
+    let userData = {
+        username: req.body.username,
+        password: req.body.password
+    }
+
+    User.findOne({ username: userData.username }).then( user => {
+        if (user && bcrypt.compareSync(userData.password, user.password)) {
+            return res.status(API_SUCCESS_CODE).json({
+                sucess: true,
+                user: user
+            });
+        } else {
+            return res.status(API_NOT_FOUND_CODE).json({
+                success: false,
+                message: 'Username or password incorrect'
+            });
+        }
+    }).catch(err => {
+        return res.status(API_ERROR_CODE).json({
+            success: false,
+            message: 'Error during login.'
+        });
+    });
+
+}

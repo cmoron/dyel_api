@@ -42,4 +42,11 @@ router.delete("/api/exercise/:id", exerciseController.deleteExercise);
  */
 router.post('/api/user', userController.addUser);
 
+/**
+ * @route POST api/user/login
+ * @desc log user in
+ * @access Public
+ */
+router.post('/api/user/login', userController.login);
+
 export default router;
