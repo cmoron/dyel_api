@@ -8,7 +8,7 @@ interface Block extends mongoose.Document {
     session: string,
     exercises: [ string ]
 }
-export const BlockSchema = new mongoose.Schema({
+export const BlockSchema: mongoose.Schema = new mongoose.Schema({
     name: { type: String, required: true },
     session: { type: ObjectId, ref: Session, required: true},
     exercises: [{ type: ObjectId, ref: Exercise, required: true }]

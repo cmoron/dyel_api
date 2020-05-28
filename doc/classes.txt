@@ -1,6 +1,7 @@
 Session:
   - id: string
   - name: string
+  - groups: Group[]
 
 Group:
   - id: string

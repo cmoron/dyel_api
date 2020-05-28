@@ -115,13 +115,12 @@ async function handleBlocks(sessionData: any, dbSessionId: string) {
  * Save group in database.
  * Returns Promise with saved object if successful.
  */
-async function handleGroup(groupData: any, dbSessionId: string) {
+async function handleGroup(groupData: any) {
 
     return new Promise((resolve, reject) => {
         let group = new Group({
             "repeat": groupData.repeat,
-            "blocks" : [],
-            "session" : dbSessionId
+            "blocks" : []
         });
 
         let res = group.save().then((databaseGroup: any) => {
@@ -150,6 +149,20 @@ function updateGroupWithBlock(databaseGroup: any, blockName: string, dbSessionId
 }
 
 /*
+ * Update session with group id.
+ * Add the group id to the session object in database.
+ */
+function updateSessionWithGroup(dbSessionId: string, dbGroupId: string) {
+    Session.findById(dbSessionId).then(session => {
+        if (session) {
+            session.updateOne({ $push: { 'groups': dbGroupId }})
+                .catch((err: any) => console.error("Session update failed.", err));
+        } else {
+            console.log("Cannot find sessions with id : " + dbSessionId);
+        }
+    });
+}
+/*
  * Handle groups.
  * Iterate through groups and save it in database.
  * Returns Promise with saved groups in array if successful.
@@ -160,11 +173,16 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
 
     return new Promise(async (resolve, reject) => {
         for(let groupData of sessionData.groups) {
-            await handleGroup(groupData, dbSessionId).then((databaseGroup: any) => {
+            await handleGroup(groupData).then((databaseGroup: any) => {
+
+                /* Add group to session */
+                updateSessionWithGroup(dbSessionId, databaseGroup.id);
+
                 /* Iterate through group blobks and add them in database group object. */
                 for (let blockName of groupData.blocks) {
                     updateGroupWithBlock(databaseGroup, blockName, dbSessionId);
                 }
+
                 results.push(databaseGroup);
             }).catch((err: any) => {
                 console.error("Error updating group:", err);
@@ -197,6 +215,7 @@ async function samples() {
     for (let sessionData of data.sessions) {
         let session = new Session({
             "name": sessionData.name,
+            "groups": []
         });
 
         /* Save session into database */
