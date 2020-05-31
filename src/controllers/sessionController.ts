@@ -1,7 +1,11 @@
 import { Request, Response } from "express";
+import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE } from "../config/configuration"
+import { loggerFactory } from "./../config/configuration";
 import Session from "./../models/session";
 import Block from "./../models/block";
 import Group from "./../models/group";
+
+const logger = loggerFactory.getLogger("controllers/sessionController.ts");
 
 export let allSessions = (req: Request, res: Response) => {
     Session.find((err: any, sessions: any) => {
@@ -38,14 +42,14 @@ export let getGroups = (req: Request, res: Response) => {
         if (err) {
             res.send(err);
         } else {
-            let groups: any[] = [];
+            const groups: any[] = [];
             if (null != session) {
-                for (let group of session.groups) {
+                for (const group of session.groups) {
                     try {
-                        let result = await Group.findById(group);
+                        const result = await Group.findById(group);
                         groups.push(result);
                     } catch (error) {
-                        console.error('Failed to retrieve group with id ' + group.id);
+                        logger.error('Failed to retrieve group with id ' + group.id);
                     }
                 }
             }
@@ -79,7 +83,7 @@ export let updateSession = (req: Request, res: Response) => {
 }
 
 export let addSession = (req: Request, res: Response) => {
-    let session = new Session(req.body);
+    const session = new Session(req.body);
     session.save((err: any) => {
         if (err) {
             res.send(err);

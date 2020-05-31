@@ -139,22 +139,18 @@
       ],
       "groups": [
         {
-          "order": 1,
           "repeat": 1,
           "blocks": [ "BLOC CARDIO" ]
         },
         {
-          "order": 2,
           "repeat": 2,
           "blocks": [ "BLOC MUSCU 1" ]
         },
         {
-          "order": 3,
           "repeat": 3,
           "blocks": [ "BLOC MUSCU 2" ]
         },
         {
-          "order": 4,
           "repeat": 1,
           "blocks": [ "BLOC CARDIO" ]
         }

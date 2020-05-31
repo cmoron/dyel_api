@@ -1,68 +1,87 @@
 import { Request, Response } from "express";
-import { 
-    API_ERROR_CODE,
-    API_SUCCESS_CODE
-} from "./../config/configuration";
+import { API_ERROR_CODE, API_SUCCESS_CODE } from "./../config/configuration";
 import Block from "./../models/block";
 import Exercise from "./../models/exercise";
+import { loggerFactory } from "./../config/configuration";
+
+/* TS logger. */
+const logger = loggerFactory.getLogger("controllers/blockController.ts");
 
 export let allBlocks = (req: Request, res: Response) => {
     Block.find((err: any, blocks: any) => {
-        if (err) {
-            res.send("Error!");
+        let status: number = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = blocks;
         } else {
-            res.send(blocks);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving blocks in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let getBlock = (req: Request, res: Response) => {
     Block.findById(req.params.id, (err: any, block: any) => {
-        if (err) {
-            res.send(err);
+        let status: number = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = block;
         } else {
-            res.send(block);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving block in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
-/*
- * TODO : Harmoniser les réponses API sur ce modèle.
- */
 export let getExercises = (req: Request, res: Response) => {
     Block.findById(req.params.id, async (err: any, block: any) => {
         let status: number = API_SUCCESS_CODE;
         let data: any = {};
-        if (null != block) {
-            let exercises: any[] = [];
 
-            for(let exerciseId of block.exercises) {
+        if (null != block) {
+            const exercises: any[] = [];
+
+            for(const exerciseId of block.exercises) {
                 try {
-                    let exercise = await Exercise.findById(exerciseId);
+                    const exercise = await Exercise.findById(exerciseId);
                     exercises.push(exercise);
                 } catch (error) {
                     status = API_ERROR_CODE;
                     data = 'API error';
-                    console.error('INTERNAL API ERROR: Failed to retrieve exercise with id ' + exerciseId);
+                    logger.error('INTERNAL API ERROR: Failed to retrieve exercise with id ' + exerciseId);
                 }
             }
+
             status = API_SUCCESS_CODE;
             data = exercises;
         } else {
             status = API_ERROR_CODE;
             data = 'Failed to retrieve block of id ' + req.params.id
         }
+
         res.status(status).send(data);
     });
 }
 
 export let deleteBlock = (req: Request, res: Response) => {
     Block.deleteOne({ _id: req.params.id }, (err: any) => {
-        if (err) {
-            res.send(err);
+        let status: number = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = "Successfully deleted block";
         } else {
-            res.send("Successfully deleted block");
+            status = API_ERROR_CODE;
+            data = "Error while deleting block";
         }
+
+        res.status(status).send(data);
     });
 }
 
@@ -82,7 +101,7 @@ export let updateBlock = (req: Request, res: Response) => {
 
 export let addBlock = (req: Request, res: Response) => {
 
-    let block = new Block(req.body);
+    const block = new Block(req.body);
     block.save((err: any) => {
         if (err) {
             res.send(err);

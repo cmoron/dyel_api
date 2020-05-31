@@ -1,4 +1,5 @@
 import cors from 'cors';
+import { LoggerFactory, LoggerFactoryOptions, LFService, LogGroupRule, LogLevel } from "typescript-logging";
 
 /* The application port. */
 export const PORT: string = process.env.PORT || "3000";
@@ -28,3 +29,9 @@ export const corsOptions: cors.CorsOptions = {
   origin: "http://localhost:8080",
   preflightContinue: false
 };
+
+/* Logger factory. */
+const loggerOptions = new LoggerFactoryOptions();
+const genericRule = new LogGroupRule(new RegExp(".+"), LogLevel.Debug);
+loggerOptions.addLogGroupRule(genericRule);
+export const loggerFactory = LFService.createNamedLoggerFactory("LoggerFactory", loggerOptions);

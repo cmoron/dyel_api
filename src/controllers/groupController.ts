@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
+import { API_ERROR_CODE, API_SUCCESS_CODE } from "./../config/configuration";
+import { loggerFactory } from "./../config/configuration";
 import Group from "./../models/group";
 import Block from "./../models/block";
+
+/* TS logger. */
+const logger = loggerFactory.getLogger("controllers/groupController.ts");
 
 export let allGroups = (req: Request, res: Response) => {
     Group.find((err: any, groups: any) => {
@@ -27,15 +32,15 @@ export let getBlocks = (req: Request, res: Response) => {
         if (err) {
             res.send(err);
         } else {
-            let blocks: any[] = [];
+            const blocks: any[] = [];
 
             if (null != group) {
-                for (let blockId of group.blocks) {
+                for (const blockId of group.blocks) {
                     try {
-                        let result = await Block.findById(blockId);
+                        const result = await Block.findById(blockId);
                         blocks.push(result);
                     } catch (error) {
-                        console.error('Failed to retrieve block with id ' + blockId);
+                        logger.error('Failed to retrieve block with id ' + blockId);
                     }
                 }
             }
@@ -69,7 +74,7 @@ export let updateGroup = (req: Request, res: Response) => {
 }
 
 export let addGroup = (req: Request, res: Response) => {
-    let group = new Group(req.body);
+    const group = new Group(req.body);
     group.save((err: any) => {
         if (err) {
             res.send(err);

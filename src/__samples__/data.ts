@@ -3,6 +3,9 @@ import Exercise from "./../models/exercise";
 import Group from "./../models/group";
 import Session from "./../models/session";
 import data from './wodz.json';
+import { loggerFactory } from "./../config/configuration";
+
+const logger = loggerFactory.getLogger("__samples__/data.ts")
 
 /*
  * Handle exercise :
@@ -11,15 +14,15 @@ import data from './wodz.json';
  */
 async function handleExercise(exerciseData: any) {
     return new Promise((resolve, reject) => {
-        let exercise = new Exercise({
+        const exercise = new Exercise({
             "name": exerciseData.name,
             "repeat": exerciseData.repeat
         });
 
-        exercise.save().then((ex: any) => {
-            resolve(ex);
-        }).catch((err: any) => {
-            reject(err);
+        exercise.save().then((dbExercise: any) => {
+            resolve(dbExercise);
+        }).catch((error: any) => {
+            reject(error);
         });
     });
 }
@@ -31,21 +34,21 @@ async function handleExercise(exerciseData: any) {
  */
 async function handleExercises(exercises: any) {
 
-    let results: any[] = [];
-    let errors: any[] = [];
+    const results: string[] = [];
+    const errors: any[] = [];
 
     return new Promise(async (resolve, reject) => {
-        for (let exerciseData of exercises) {
+        for (const exerciseData of exercises) {
             try {
-                let ex: any = await handleExercise(exerciseData);
-                results.push(ex.id);
+                const dbExercise: any = await handleExercise(exerciseData);
+                results.push(dbExercise.id);
             } catch (error) {
-                console.error('Error saving exercise : ' + exerciseData.name, error);
+                logger.error('Error saving exercise : ' + exerciseData.name, error);
                 errors.push(error);
             }
         }
 
-        if (errors.length == 0) {
+        if (errors.length === 0) {
             resolve(results);
         } else {
             reject(errors);
@@ -58,38 +61,15 @@ async function handleExercises(exercises: any) {
  * Save block in database.
  * Returns Promise with saved object if successful.
  */
-//function handleBlock(blockData: any, dbSessionId: string) {
-    //return new Promise((resolve, reject) => {
-        //let block = new Block({
-            //"name": blockData.name,
-            //"session" : dbSessionId,
-            //"exercises" : []
-        //});
-
-        //let res = block.save().then((databaseBlock: any) => {
-            //resolve(databaseBlock);
-        //})
-        //.catch((err: any) => {
-            //console.error("Error saving block. " + res);
-            //reject(err);
-        //});
-    //});
-//}
-
-/*
- * Handle block.
- * Save block in database.
- * Returns Promise with saved object if successful.
- */
-function handleBlock(blockData: any, exercises: any[], dbSessionId: String) {
+function handleBlock(blockData: any, exercises: any[], dbSessionId: string) {
     return new Promise((resolve, reject) =>  {
-        let block = new Block({
+        const block = new Block({
             "name": blockData.name,
             "session": dbSessionId,
             "exercises": exercises
         });
 
-        let res = block.save().then((databaseBlock: any) => {
+        const res = block.save().then((databaseBlock: any) => {
             resolve(databaseBlock);
         }).catch((error: any) => {
             reject(error);
@@ -100,30 +80,32 @@ function handleBlock(blockData: any, exercises: any[], dbSessionId: String) {
 /*
  * Handle blocks.
  * Iterate through blocks and save it in database.
- * Returns Promise with saved blocks in array if successful.
+ * Returns Promise with saved blocks ids in array if successful.
  */
 async function handleBlocks(sessionData: any, dbSessionId: string) {
-    let results: any[] = new Array<any>();
-    let errors: any[] = new Array<any>();
+    const results: string[] = [];
+    const errors: any[] = [];
 
     return new Promise(async (resolve, reject) => {
-        for (let blockData of sessionData.blocks) {
-            console.log(blockData.name);
-            //let databaseBlock: any = await handleBlock(blockData, dbSessionId);
-            let exercises = [];
-            if (null != blockData.exercises) {
+        for (const blockData of sessionData.blocks) {
+            const exercises: any[] = [];
+
+            if (blockData.exercises) {
                 try {
-                    let res = await handleExercises(blockData.exercises);
-                    if (res instanceof Array) exercises = res;
+                    const res = await handleExercises(blockData.exercises);
+                    if (res instanceof Array) {
+                        exercises.push(...res);
+                    }
                 } catch (error) {
-                    console.error("Error during exercises save, block data will be corrupted");
+                    logger.error("Error during exercises save, block data will be corrupted");
                 }
             }
-            let databaseBlock: any = await handleBlock(blockData, exercises, dbSessionId);
-            console.log(databaseBlock.name + ' registered');
+
+            const databaseBlock: any = await handleBlock(blockData, exercises, dbSessionId);
+            results.push(databaseBlock.id);
         }
 
-        if (errors.length == 0) {
+        if (errors.length === 0) {
             resolve(results);
         } else {
             reject("Error saving blocks.");
@@ -139,17 +121,17 @@ async function handleBlocks(sessionData: any, dbSessionId: string) {
 async function handleGroup(groupData: any) {
 
     return new Promise((resolve, reject) => {
-        let group = new Group({
+        const group = new Group({
             "order": groupData.order,
             "repeat": groupData.repeat,
             "blocks" : []
         });
 
-        let res = group.save().then((databaseGroup: any) => {
+        const res = group.save().then((databaseGroup: any) => {
             resolve(databaseGroup);
         })
         .catch((err: any) => {
-            console.error("Error saving group: " + err);
+            logger.error("Error saving group: " + err);
             reject(err);
         });
     });
@@ -160,12 +142,12 @@ async function handleGroup(groupData: any) {
  * Add the block to the group in database.
  */
 function updateGroupWithBlock(databaseGroup: any, blockName: string, dbSessionId: string) {
-    Block.findOne({ name: blockName, session: dbSessionId }).exec( (err, dbBlock) => {
-        if (null != dbBlock) {
+    Block.findOne({ name: blockName, session: dbSessionId }).exec( (findError, dbBlock) => {
+        if (dbBlock) {
             databaseGroup.updateOne({ $push: { 'blocks': dbBlock.id }})
-                .catch((err: any) => console.error("Group update failed.", err));
+                .catch((updateError: any) => logger.error("Group update failed.", updateError));
         } else {
-            console.error("Cannot find " + blockName + " for session " + dbSessionId);
+            logger.error("Cannot find " + blockName + " for session " + dbSessionId);
         }
     });
 }
@@ -178,41 +160,42 @@ function updateSessionWithGroup(dbSessionId: string, dbGroupId: string) {
     Session.findById(dbSessionId).then(session => {
         if (session) {
             session.updateOne({ $push: { 'groups': dbGroupId }})
-                .catch((err: any) => console.error("Session update failed.", err));
+                .catch((err: any) => logger.error("Session update failed.", err));
         } else {
-            console.error("Cannot find sessions with id : " + dbSessionId);
+            logger.error("Cannot find sessions with id : " + dbSessionId);
         }
     });
 }
 /*
  * Handle groups.
  * Iterate through groups and save it in database.
- * Returns Promise with saved groups in array if successful.
+ * Returns Promise with saved groups ids in array if successful.
  */
 async function handleGroups(sessionData: any, dbSessionId: string) {
-    let results: any[] = new Array<any>();
-    let errors: any[] = new Array<any>();
+    const results: string[] = [];
+    const errors: any[] = [];
 
     return new Promise(async (resolve, reject) => {
-        for(let groupData of sessionData.groups) {
+        for(const groupData of sessionData.groups) {
+            /* Await needed to update session in good order. */
             await handleGroup(groupData).then((databaseGroup: any) => {
 
                 /* Add group to session */
                 updateSessionWithGroup(dbSessionId, databaseGroup.id);
 
                 /* Iterate through group blobks and add them in database group object. */
-                for (let blockName of groupData.blocks) {
+                for (const blockName of groupData.blocks) {
                     updateGroupWithBlock(databaseGroup, blockName, dbSessionId);
                 }
 
                 results.push(databaseGroup);
-            }).catch((err: any) => {
-                console.error("Error updating group:", err);
-                errors.push(err);
+            }).catch((error: any) => {
+                logger.error("Error updating group:", error);
+                errors.push(error);
             });
         }
 
-        if (errors.length == 0) {
+        if (errors.length === 0) {
             resolve(results);
         } else {
             reject("Error saving groups.");
@@ -225,36 +208,30 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
  * Parse sample json data file and register values in database.
  */
 async function samples() {
-    console.log("Create sample data");
+
+    logger.info("Create sample data.");
 
     /* Clear database sequentially */
-    await Session.deleteMany({}, () => { console.log("Sessions cleared")});
-    await Group.deleteMany({}, () => { console.log("Groups cleared")});
-    await Block.deleteMany({}, () => { console.log("Blocks cleared")});
-    await Exercise.deleteMany({}, () => { console.log("Exercises cleared")});
+    await Session.deleteMany({}, () => { logger.info("Sessions cleared")});
+    await Group.deleteMany({}, () => { logger.info("Groups cleared")});
+    await Block.deleteMany({}, () => { logger.info("Blocks cleared")});
+    await Exercise.deleteMany({}, () => { logger.info("Exercises cleared")});
 
     /* Read sessions from json */
-    for (let sessionData of data.sessions) {
-        let session = new Session({
+    for (const sessionData of data.sessions) {
+        const session = new Session({
             "name": sessionData.name,
             "groups": []
         });
 
         try {
             /* Save session into database */
-            let dbSession: any = await session.save();
+            const dbSession: any = await session.save();
             await handleBlocks(sessionData, dbSession.id);
             await handleGroups(sessionData, dbSession.id);
         } catch (error) {
-            console.error("Error saving session.", error);
+            logger.error("Error saving session.", error);
         }
-
-        //session.save().then(async (dbSession) => {
-            //await handleBlocks(sessionData, dbSession.id);
-            //await handleGroups(sessionData, dbSession.id);
-        //}).catch(err => {
-            //console.error("Error saving session.", err);
-        //});
     }
 }
 

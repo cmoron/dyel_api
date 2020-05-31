@@ -1,59 +1,93 @@
 import { Request, Response } from "express";
+import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE } from "../config/configuration"
+import { loggerFactory } from "./../config/configuration";
 import Exercise from "./../models/exercise";
 
+const logger = loggerFactory.getLogger("controllers/exerciseController.ts");
+
 export let allExercises = (req: Request, res: Response) => {
-    let exercises = Exercise.find((err: any, exercises: any) => {
-        if (err) {
-            res.send("Error!");
+    Exercise.find((err: any, dbExercises: any) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = dbExercises;
         } else {
-            res.send(exercises);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving exercises in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let getExercise = (req: Request, res: Response) => {
-    let exercise = Exercise.findById(req.params.id, (err: any, exercise: any) => {
-        if (err) {
-            res.send(err);
+    Exercise.findById(req.params.id, (err: any, dbExercise: any) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = dbExercise;
         } else {
-            res.send(exercise);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving exercise in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let deleteExercise = (req: Request, res: Response) => {
-    let exercise = Exercise.deleteOne({ _id: req.params.id }, (err: any) => {
-        if (err) {
-            res.send(err);
+    Exercise.deleteOne({ _id: req.params.id }, (err: any) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = "Sucessfully deleted exercise.";
         } else {
-            res.send("Successfully deleted exercise");
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while deleting exercise in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let updateExercise = (req: Request, res: Response) => {
-    let exercise = Exercise.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        (err: any, exercise: any) => {
-            if (err) {
-                res.send(err);
-            } else {
-                res.send("Successfully updated exercise");
-            }
+    Exercise.findByIdAndUpdate(req.params.id, req.body, (err: any, dbExercise: any) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = dbExercise;
+        } else {
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while updating exercise in database.";
         }
-    );
+
+        res.status(status).send(data);
+    });
 }
 
 export let addExercise = (req: Request, res: Response) => {
 
-    var exercise = new Exercise(req.body);
-    exercise.save((err: any) => {
-        if (err) {
-            res.send(err);
+    const exercise = new Exercise(req.body);
+    exercise.save((err: any, exercise: Exercise) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = exercise;
         } else {
-            res.send(exercise);
+            logger.error(err);
+            data = "Error while adding exercise in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 

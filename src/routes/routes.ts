@@ -7,7 +7,7 @@ import * as exerciseController from "../controllers/exerciseController";
 import * as userController from "../controllers/userController";
 import { Request, Response } from "express";
 
-let router = express.Router();
+const router = express.Router();
 
 router.get("/", (req: Request, res: Response) => res.send("hello wodz !"));
 

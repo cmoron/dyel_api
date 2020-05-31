@@ -6,13 +6,16 @@ import samples from './__samples__/data';
 import routes from './routes/routes';
 import * as conf from './config/configuration';
 
+/* TS logger. */
+const logger = conf.loggerFactory.getLogger("app.ts");
+
 mongoose.connect(conf.URI, conf.mongooseOptions)
 .then(() => {
-    console.log("Now connected to MongoDB, creating sample data");
+    logger.info("Now connected to MongoDB, creating sample data");
     /* Load sample data. */
     samples(); 
 })
-.catch((err: any) => console.error("Error connecting MongoDB.", err.message));
+.catch((err: any) => logger.error("Error connecting MongoDB.", err.message));
 
 /* Init app */
 const app = express();
@@ -28,5 +31,5 @@ app.use(routes);
 
 /* Launch app */
 const server = app.listen(conf.PORT, () => {
-    console.log("App is running on http://localhost:%d", conf.PORT);
+    logger.info("App is running on http://localhost:" + conf.PORT);
 });

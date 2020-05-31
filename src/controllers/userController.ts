@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import User from '../models/user';
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
-import { 
-    API_ERROR_CODE,
-    API_SUCCESS_CODE,
-    API_NOT_FOUND_CODE } from "../config/configuration"
+import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE } from "../config/configuration"
+import { loggerFactory } from "./../config/configuration";
+import User from '../models/user';
+
+/* TS logger. */
+const logger = loggerFactory.getLogger("controllers/userController.ts");
 
 /*
  * Function hashPassword.
@@ -23,34 +24,34 @@ function hashPassword(password: string) {
 export let addUser = async (req: Request, res: Response) => {
 
     /* Get request body. */
-    let { name, username, email, password, confirm_password } = req.body;
+    const { name, username, email, password, confirm_password } = req.body;
 
     /* Check password and confirmation password match. */
-    if (password != confirm_password) {
+    if (password !== confirm_password) {
         return res.status(API_ERROR_CODE).json ({
             sucess: false,
-            message: "Passwords do not match." }
-        );
+            message: "Passwords do not match."
+        });
     }
 
     const hash = hashPassword(password);
-    let user = new User({ name, username, email, password: hash });
+    const user = new User({ name, username, email, password: hash });
 
-    user.save().then((user: User) => {
+    user.save().then((dbUser: User) => {
 
         return res.status(API_SUCCESS_CODE).json({
             success: true,
-            message: "User is now registered."
+            message: "User " + dbUser.name + " is now registered."
         });
 
     }).catch(err => {
 
         /* Default error message */
         let errorMessage = "Error saving user."
-        console.error(err);
+        logger.error(errorMessage, err);
 
         /* Handle duplication errors. */
-        if (err.name === 'MongoError' && err.code == 11000) {
+        if (err.name === 'MongoError' && err.code === 11000) {
             if (err.keyValue.username != null) {
                 errorMessage = 'username ' + username + ' already exists';
             } else if (err.keyValue.email != null) {
@@ -67,20 +68,20 @@ export let addUser = async (req: Request, res: Response) => {
 
 /*
  * Log user in
- * Check username and password 
+ * Check username and password
  * Returns the user data if user and password are OK.
  */
 export let login = async (req: Request, res: Response) => {
-    let userData = {
+    const userData = {
         username: req.body.username,
         password: req.body.password
     }
 
-    User.findOne({ username: userData.username }).then( user => {
-        if (user && bcrypt.compareSync(userData.password, user.password)) {
+    User.findOne({ username: userData.username }).then(dbUser => {
+        if (dbUser && bcrypt.compareSync(userData.password, dbUser.password)) {
             return res.status(API_SUCCESS_CODE).json({
                 sucess: true,
-                user: user
+                user: dbUser
             });
         } else {
             return res.status(API_NOT_FOUND_CODE).json({
@@ -94,5 +95,4 @@ export let login = async (req: Request, res: Response) => {
             message: 'Error during login.'
         });
     });
-
 }
