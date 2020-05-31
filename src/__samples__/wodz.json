@@ -54,14 +54,17 @@
       ],
       "groups": [
         {
+          "order": 1,
           "repeat": 3,
           "blocks": [ "BLOC CARDIO", "BLOC GAINAGE" ]
         },
         {
+          "order": 2,
           "repeat": 5,
           "blocks": [ "BLOC MUSCU", "BLOC CARDIO" ]
         },
         {
+          "order": 3,
           "repeat": 1,
           "blocks": [ "BLOC VACUUM" ]
         }
@@ -71,7 +74,6 @@
       "name": "Estelle full body",
       "blocks": [
         {
-          "id": 1,
           "name": "BLOC CARDIO",
           "exercises": [
             {
@@ -101,7 +103,6 @@
           ]
         },
         {
-          "id": 2,
           "name": "BLOC MUSCU 1",
           "exercises": [
             {
@@ -119,7 +120,6 @@
           ]
         },
         {
-          "id": 3,
           "name": "BLOC MUSCU 2",
           "exercises": [
             {
@@ -139,18 +139,22 @@
       ],
       "groups": [
         {
+          "order": 1,
           "repeat": 1,
           "blocks": [ "BLOC CARDIO" ]
         },
         {
+          "order": 2,
           "repeat": 2,
           "blocks": [ "BLOC MUSCU 1" ]
         },
         {
+          "order": 3,
           "repeat": 3,
           "blocks": [ "BLOC MUSCU 2" ]
         },
         {
+          "order": 4,
           "repeat": 1,
           "blocks": [ "BLOC CARDIO" ]
         }

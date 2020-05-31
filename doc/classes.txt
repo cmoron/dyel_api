@@ -5,6 +5,7 @@ Session:
 
 Group:
   - id: string
+  - order: number
   - repeat: number
   - blocks: Block[]
   - session: string

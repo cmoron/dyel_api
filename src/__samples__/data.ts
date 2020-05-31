@@ -119,6 +119,7 @@ async function handleGroup(groupData: any) {
 
     return new Promise((resolve, reject) => {
         let group = new Group({
+            "order": groupData.order,
             "repeat": groupData.repeat,
             "blocks" : []
         });

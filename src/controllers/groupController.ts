@@ -8,7 +8,7 @@ export let allGroups = (req: Request, res: Response) => {
         } else {
             res.send(groups);
         }
-    });
+    }).sort('order');
 }
 
 export let getGroup = (req: Request, res: Response) => {
