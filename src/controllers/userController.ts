@@ -47,7 +47,7 @@ export let addUser = async (req: Request, res: Response) => {
 
         /* Default error message */
         let errorMessage = "Error saving user."
-        console.log(err);
+        console.error(err);
 
         /* Handle duplication errors. */
         if (err.name === 'MongoError' && err.code == 11000) {

@@ -27,26 +27,22 @@ async function handleExercise(exerciseData: any) {
 /*
  * Handle exercises :
  * Iterate through exercises and save it in database.
- * Returns Promise with saved exercises in array if successful.
+ * Returns Promise with saved exercises ids in array if successful.
  */
-async function handleExercises(blockId: String, exercises: any) {
+async function handleExercises(exercises: any) {
 
-    let results: any[] = new Array<any>();
-    let errors: any[] = new Array<any>();
+    let results: any[] = [];
+    let errors: any[] = [];
 
     return new Promise(async (resolve, reject) => {
         for (let exerciseData of exercises) {
-            await handleExercise(exerciseData).then((ex: any) => {
-                results.push(ex);
-
-                Block.findByIdAndUpdate(blockId, { $push: {'exercises': ex.id}}).catch((err: any) => {
-                    console.error("Error adding exercises to block.", err);
-                    errors.push(err);
-                });
-            }).catch((err: any) => {
-                console.log("Error registering exercise: " + err);
-                errors.push(err);
-            });
+            try {
+                let ex: any = await handleExercise(exerciseData);
+                results.push(ex.id);
+            } catch (error) {
+                console.error('Error saving exercise : ' + exerciseData.name, error);
+                errors.push(error);
+            }
         }
 
         if (errors.length == 0) {
@@ -62,20 +58,41 @@ async function handleExercises(blockId: String, exercises: any) {
  * Save block in database.
  * Returns Promise with saved object if successful.
  */
-function handleBlock(blockData: any, dbSessionId: string) {
-    return new Promise((resolve, reject) => {
+//function handleBlock(blockData: any, dbSessionId: string) {
+    //return new Promise((resolve, reject) => {
+        //let block = new Block({
+            //"name": blockData.name,
+            //"session" : dbSessionId,
+            //"exercises" : []
+        //});
+
+        //let res = block.save().then((databaseBlock: any) => {
+            //resolve(databaseBlock);
+        //})
+        //.catch((err: any) => {
+            //console.error("Error saving block. " + res);
+            //reject(err);
+        //});
+    //});
+//}
+
+/*
+ * Handle block.
+ * Save block in database.
+ * Returns Promise with saved object if successful.
+ */
+function handleBlock(blockData: any, exercises: any[], dbSessionId: String) {
+    return new Promise((resolve, reject) =>  {
         let block = new Block({
             "name": blockData.name,
-            "session" : dbSessionId,
-            "exercises" : []
+            "session": dbSessionId,
+            "exercises": exercises
         });
 
         let res = block.save().then((databaseBlock: any) => {
             resolve(databaseBlock);
-        })
-        .catch((err: any) => {
-            console.log("Error saving block. " + res);
-            reject(err);
+        }).catch((error: any) => {
+            reject(error);
         });
     });
 }
@@ -91,15 +108,19 @@ async function handleBlocks(sessionData: any, dbSessionId: string) {
 
     return new Promise(async (resolve, reject) => {
         for (let blockData of sessionData.blocks) {
-            await handleBlock(blockData, dbSessionId).then((databaseBlock: any) => {
-                if (null != blockData.exercises) {
-                    handleExercises(databaseBlock.id, blockData.exercises);
+            console.log(blockData.name);
+            //let databaseBlock: any = await handleBlock(blockData, dbSessionId);
+            let exercises = [];
+            if (null != blockData.exercises) {
+                try {
+                    let res = await handleExercises(blockData.exercises);
+                    if (res instanceof Array) exercises = res;
+                } catch (error) {
+                    console.error("Error during exercises save, block data will be corrupted");
                 }
-                results.push(databaseBlock);
-            }).catch(err => {
-                console.error("Error saving Block.", err);
-                errors.push(err);
-            });
+            }
+            let databaseBlock: any = await handleBlock(blockData, exercises, dbSessionId);
+            console.log(databaseBlock.name + ' registered');
         }
 
         if (errors.length == 0) {
@@ -128,7 +149,7 @@ async function handleGroup(groupData: any) {
             resolve(databaseGroup);
         })
         .catch((err: any) => {
-            console.log("Error saving group: " + err);
+            console.error("Error saving group: " + err);
             reject(err);
         });
     });
@@ -144,7 +165,7 @@ function updateGroupWithBlock(databaseGroup: any, blockName: string, dbSessionId
             databaseGroup.updateOne({ $push: { 'blocks': dbBlock.id }})
                 .catch((err: any) => console.error("Group update failed.", err));
         } else {
-            console.log("Cannot find " + blockName + " for session " + dbSessionId);
+            console.error("Cannot find " + blockName + " for session " + dbSessionId);
         }
     });
 }
@@ -159,7 +180,7 @@ function updateSessionWithGroup(dbSessionId: string, dbGroupId: string) {
             session.updateOne({ $push: { 'groups': dbGroupId }})
                 .catch((err: any) => console.error("Session update failed.", err));
         } else {
-            console.log("Cannot find sessions with id : " + dbSessionId);
+            console.error("Cannot find sessions with id : " + dbSessionId);
         }
     });
 }
@@ -219,13 +240,21 @@ async function samples() {
             "groups": []
         });
 
-        /* Save session into database */
-        session.save().then(async (dbSession) => {
+        try {
+            /* Save session into database */
+            let dbSession: any = await session.save();
             await handleBlocks(sessionData, dbSession.id);
             await handleGroups(sessionData, dbSession.id);
-        }).catch(err => {
-            console.error("Error saving session.", err);
-        });
+        } catch (error) {
+            console.error("Error saving session.", error);
+        }
+
+        //session.save().then(async (dbSession) => {
+            //await handleBlocks(sessionData, dbSession.id);
+            //await handleGroups(sessionData, dbSession.id);
+        //}).catch(err => {
+            //console.error("Error saving session.", err);
+        //});
     }
 }
 

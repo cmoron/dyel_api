@@ -1,18 +1,19 @@
 import { Request, Response } from "express";
 import Group from "./../models/group";
+import Block from "./../models/block";
 
 export let allGroups = (req: Request, res: Response) => {
-    let groups = Group.find((err: any, groups: any) => {
+    Group.find((err: any, groups: any) => {
         if (err) {
             res.send("Error!");
         } else {
             res.send(groups);
         }
-    }).sort('order');
+    });
 }
 
 export let getGroup = (req: Request, res: Response) => {
-    let group = Group.findById(req.params.id, (err: any, group: any) => {
+    Group.findById(req.params.id, (err: any, group: any) => {
         if (err) {
             res.send(err);
         } else {
@@ -21,8 +22,30 @@ export let getGroup = (req: Request, res: Response) => {
     });
 }
 
+export let getBlocks = (req: Request, res: Response) => {
+    Group.findById(req.params.id, async (err: any, group: any) => {
+        if (err) {
+            res.send(err);
+        } else {
+            let blocks: any[] = [];
+
+            if (null != group) {
+                for (let blockId of group.blocks) {
+                    try {
+                        let result = await Block.findById(blockId);
+                        blocks.push(result);
+                    } catch (error) {
+                        console.error('Failed to retrieve block with id ' + blockId);
+                    }
+                }
+            }
+            res.send(blocks);
+        }
+    });
+}
+
 export let deleteGroup = (req: Request, res: Response) => {
-    let group = Group.deleteOne({ _id: req.params.id }, (err: any) => {
+    Group.deleteOne({ _id: req.params.id }, (err: any) => {
         if (err) {
             res.send(err);
         } else {
@@ -32,7 +55,7 @@ export let deleteGroup = (req: Request, res: Response) => {
 }
 
 export let updateGroup = (req: Request, res: Response) => {
-    let group = Group.findByIdAndUpdate(
+    Group.findByIdAndUpdate(
         req.params.id,
         req.body,
         (err: any, group: any) => {
@@ -46,7 +69,7 @@ export let updateGroup = (req: Request, res: Response) => {
 }
 
 export let addGroup = (req: Request, res: Response) => {
-    var group = new Group(req.body);
+    let group = new Group(req.body);
     group.save((err: any) => {
         if (err) {
             res.send(err);

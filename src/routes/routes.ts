@@ -13,18 +13,22 @@ router.get("/", (req: Request, res: Response) => res.send("hello wodz !"));
 
 router.get("/api/sessions", sessionController.allSessions);
 router.get("/api/session/:id", sessionController.getSession);
+router.get("/api/session/:id/blocks", sessionController.getBlocks);
+router.get("/api/session/:id/groups", sessionController.getGroups);
 router.post("/api/session", sessionController.addSession);
 router.put("/api/session/:id", sessionController.updateSession);
 router.delete("/api/session/:id", sessionController.deleteSession);
 
 router.get("/api/groups", groupController.allGroups);
 router.get("/api/group/:id", groupController.getGroup);
+router.get("/api/group/:id/blocks", groupController.getBlocks);
 router.post("/api/group", groupController.addGroup);
 router.put("/api/group/:id", groupController.updateGroup);
 router.delete("/api/group/:id", groupController.deleteGroup);
 
 router.get("/api/blocks", blockController.allBlocks);
 router.get("/api/block/:id", blockController.getBlock);
+router.get("/api/block/:id/exercises", blockController.getExercises);
 router.post("/api/block", blockController.addBlock);
 router.put("/api/block/:id", blockController.updateBlock);
 router.delete("/api/block/:id", blockController.deleteBlock);

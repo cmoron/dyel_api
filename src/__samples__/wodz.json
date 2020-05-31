@@ -61,7 +61,7 @@
         {
           "order": 2,
           "repeat": 5,
-          "blocks": [ "BLOC MUSCU", "BLOC CARDIO" ]
+          "blocks": [ "BLOC CARDIO", "BLOC MUSCU" ]
         },
         {
           "order": 3,
