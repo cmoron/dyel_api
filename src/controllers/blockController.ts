@@ -4,7 +4,6 @@ import Block from "./../models/block";
 import Exercise from "./../models/exercise";
 import { loggerFactory } from "./../config/configuration";
 
-/* TS logger. */
 const logger = loggerFactory.getLogger("controllers/blockController.ts");
 
 export let allBlocks = (req: Request, res: Response) => {
@@ -16,6 +15,7 @@ export let allBlocks = (req: Request, res: Response) => {
             data = blocks;
         } else {
             status = API_ERROR_CODE;
+            logger.error(err);
             data = "Error while retrieving blocks in database.";
         }
 
@@ -32,6 +32,7 @@ export let getBlock = (req: Request, res: Response) => {
             data = block;
         } else {
             status = API_ERROR_CODE;
+            logger.error(err);
             data = "Error while retrieving block in database.";
         }
 
@@ -61,6 +62,7 @@ export let getExercises = (req: Request, res: Response) => {
             status = API_SUCCESS_CODE;
             data = exercises;
         } else {
+            logger.error(err);
             status = API_ERROR_CODE;
             data = 'Failed to retrieve block of id ' + req.params.id
         }
@@ -77,6 +79,7 @@ export let deleteBlock = (req: Request, res: Response) => {
         if (!err) {
             data = "Successfully deleted block";
         } else {
+            logger.error(err);
             status = API_ERROR_CODE;
             data = "Error while deleting block";
         }
@@ -86,27 +89,37 @@ export let deleteBlock = (req: Request, res: Response) => {
 }
 
 export let updateBlock = (req: Request, res: Response) => {
-    Block.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        (err: any, block: any) => {
-            if (err) {
-                res.send(err);
-            } else {
-                res.send("Successfully updated block");
-            }
+    Block.findByIdAndUpdate(req.params.id, req.body, (err: any, block: any) => {
+        let status: number = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = block;
+        } else {
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while updating block.";
         }
-    );
+
+        res.status(status).send(data);
+    });
 }
 
 export let addBlock = (req: Request, res: Response) => {
 
     const block = new Block(req.body);
-    block.save((err: any) => {
-        if (err) {
-            res.send(err);
+    block.save((err: any, dbBlock: Block) => {
+        let status: number = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = dbBlock;
         } else {
-            res.send(block);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while registering block in database.";
         }
+
+        res.status(status).send(data);
     });
 }

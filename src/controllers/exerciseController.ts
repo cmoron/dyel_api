@@ -76,18 +76,18 @@ export let updateExercise = (req: Request, res: Response) => {
 export let addExercise = (req: Request, res: Response) => {
 
     const exercise = new Exercise(req.body);
-    exercise.save((err: any, exercise: Exercise) => {
+    exercise.save((err: any, dbExercise: Exercise) => {
         let status = API_SUCCESS_CODE;
         let data: any = {};
 
         if (!err) {
-            data = exercise;
+            data = dbExercise;
         } else {
             logger.error(err);
+            status = API_ERROR_CODE;
             data = "Error while adding exercise in database.";
         }
 
         res.status(status).send(data);
     });
 }
-

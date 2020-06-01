@@ -9,86 +9,133 @@ const logger = loggerFactory.getLogger("controllers/sessionController.ts");
 
 export let allSessions = (req: Request, res: Response) => {
     Session.find((err: any, sessions: any) => {
-        if (err) {
-            res.send("Error!");
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = sessions;
         } else {
-            res.send(sessions);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving sessions in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let getSession = (req: Request, res: Response) => {
     Session.findById(req.params.id, (err: any, session: any) => {
-        if (err) {
-            res.send(err);
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = session;
         } else {
-            res.send(session);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving session in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let getBlocks = (req : Request, res: Response) => {
     Block.find({ session: req.params.id }, (err: any, blocks: any) => {
-        if (err) {
-            res.send(err);
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = blocks;
         } else {
-            res.send(blocks)
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while retrieving blocks in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let getGroups = (req: Request, res: Response) => {
     Session.findById(req.params.id, async (err: any, session: any) => {
-        if (err) {
-            res.send(err);
-        } else {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
             const groups: any[] = [];
-            if (null != session) {
+            if (session) {
                 for (const group of session.groups) {
                     try {
                         const result = await Group.findById(group);
                         groups.push(result);
                     } catch (error) {
                         logger.error('Failed to retrieve group with id ' + group.id);
+                        status = API_ERROR_CODE;
                     }
                 }
             }
-            res.send(groups);
+
+            data = groups;
+        } else {
+            logger.error(err);
+            data = "Error while retrieving groups for session " + req.params.id;
+            status = API_ERROR_CODE;
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let deleteSession = (req: Request, res: Response) => {
     Session.deleteOne({ _id: req.params.id }, (err: any) => {
-        if (err) {
-            res.send(err);
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = "Successfully deleted session.";
         } else {
-            res.send("Successfully deleted session");
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while deleting session in database.";
         }
+
+        res.status(status).send(data);
     });
 }
 
 export let updateSession = (req: Request, res: Response) => {
-    Session.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        (err: any, session: any) => {
-            if (err) {
-                res.send(err);
-            } else {
-                res.send("Successfully updated session");
-            }
+    Session.findByIdAndUpdate(req.params.id, req.body, (err: any, session: any) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = session;
+        } else {
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while updating session in database.";
         }
-    );
+
+        res.status(status).send(data);
+    });
 }
 
 export let addSession = (req: Request, res: Response) => {
     const session = new Session(req.body);
-    session.save((err: any) => {
-        if (err) {
-            res.send(err);
+    session.save((err: any, dbSession: Session) => {
+        let status = API_SUCCESS_CODE;
+        let data: any = {};
+
+        if (!err) {
+            data = dbSession;
         } else {
-            res.send(session);
+            logger.error(err);
+            status = API_ERROR_CODE;
+            data = "Error while saving session in database.";
         }
+
+        res.status(status).send(data);
     });
 }
