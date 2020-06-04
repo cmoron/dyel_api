@@ -176,23 +176,25 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
     const errors: any[] = []
 
     return new Promise(async (resolve, reject) => {
-        for(const groupData of sessionData.groups) {
-            /* Await needed to update session in good order. */
-            await handleGroup(groupData).then((databaseGroup: any) => {
+        if (sessionData.groups) {
+            for(const groupData of sessionData.groups) {
+                /* Await needed to update session in good order. */
+                await handleGroup(groupData).then((databaseGroup: any) => {
 
-                /* Add group to session */
-                updateSessionWithGroup(dbSessionId, databaseGroup.id)
+                    /* Add group to session */
+                    updateSessionWithGroup(dbSessionId, databaseGroup.id)
 
-                /* Iterate through group blobks and add them in database group object. */
-                for (const blockName of groupData.blocks) {
-                    updateGroupWithBlock(databaseGroup, blockName, dbSessionId)
-                }
+                    /* Iterate through group blobks and add them in database group object. */
+                    for (const blockName of groupData.blocks) {
+                        updateGroupWithBlock(databaseGroup, blockName, dbSessionId)
+                    }
 
-                results.push(databaseGroup)
-            }).catch((error: any) => {
-                logger.error('Error updating group:', error)
-                errors.push(error)
-            })
+                    results.push(databaseGroup)
+                }).catch((error: any) => {
+                    logger.error('Error updating group:', error)
+                    errors.push(error)
+                })
+            }
         }
 
         if (errors.length === 0) {
