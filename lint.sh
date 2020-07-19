@@ -1,1 +1,1 @@
-tslint -c tslint.json src/config/configuration.ts src/controllers/blockController.ts src/controllers/exerciseController.ts src/controllers/groupController.ts src/controllers/sessionController.ts src/controllers/userController.ts src/models/block.ts src/models/exercise.ts src/models/group.ts src/models/session.ts src/models/user.ts src/routes/routes.ts src/__samples__/data.ts
+tslint -c tslint.json src/**/*
