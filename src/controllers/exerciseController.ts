@@ -45,7 +45,7 @@ export let deleteExercise = (req: Request, res: Response) => {
         let data: any = {};
 
         if (!err) {
-            data = "Sucessfully deleted exercise.";
+            data = "Successfully deleted exercise.";
         } else {
             logger.error(err);
             status = API_ERROR_CODE;
