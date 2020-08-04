@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import mongoose from 'mongoose'
 import jwt from 'jsonwebtoken'
-import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE } from '../config/configuration'
+import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE, API_UNOTHORIZED_CODE } from '../config/configuration'
 import { loggerFactory, JWT_SECRET } from './../config/configuration'
 import User from '../models/user'
 
@@ -26,17 +26,33 @@ export let addUser = async (req: Request, res: Response) => {
     /* Get request body. */
     const { name, username, email, password, confirm_password } = req.body
 
-    /* Check password and confirmation password match. */
+    /* Check input data :
+     * username is set
+     * name is set
+     * password and confirmation password match.
+     * email is set
+     */
+    if (!username || username === '') {
+        return res.status(API_ERROR_CODE).json ({
+            success: false,
+            message: 'Username should be provided.'
+        })
+    }
+    if (!name || name === '') {
+        return res.status(API_ERROR_CODE).json ({
+            success: false,
+            message: 'Name should be provided.'
+        })
+    }
     if (password !== confirm_password) {
         return res.status(API_ERROR_CODE).json ({
-            sucess: false,
+            success: false,
             message: 'Passwords do not match.'
         })
     }
-
     if (!email || email === '') {
         return res.status(API_ERROR_CODE).json ({
-            sucess: false,
+            success: false,
             message: 'Email should be provided.'
         })
     }
@@ -98,14 +114,15 @@ export let login = async (req: Request, res: Response) => {
                 expiresIn: 604800
             }, (err, token) => {
                 return res.status(API_SUCCESS_CODE).json({
-                    sucess: true,
+                    success: true,
+                    user: payload,
                     token: `Bearer ${token}`,
                     message: 'You are now logged'
                 })
             })
 
         } else {
-            return res.status(API_NOT_FOUND_CODE).json({
+            return res.status(API_UNOTHORIZED_CODE).json({
                 success: false,
                 message: 'Username or password incorrect'
             })

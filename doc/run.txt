@@ -4,3 +4,64 @@ Run a mongodb instance with docker:
     docker pull mongo:latest
     docker run -p 27017:27017 --name zn_mongo -d mongo
     yarn run watch
+
+Users api example with httpie:
+
+* Register user
+$ http localhost:3000/api/user/ name="Mouton Moron" username=mouton email=mouton.moron@gmail.com password=1234 confirm_password=1234
+HTTP/1.1 201 Created
+Access-Control-Allow-Credentials: true
+Connection: keep-alive
+Content-Length: 65
+Content-Type: application/json; charset=utf-8
+Date: Wed, 22 Jul 2020 21:46:02 GMT
+ETag: W/"41-CAOdc/38JPg01D5D++8F5RGvZU8"
+Vary: Origin
+X-Powered-By: Express
+
+{
+    "message": "User Mouton Moron is now registered.",
+    "success": true
+}
+
+* Log user
+$ http localhost:3000/api/user/login username=mouton password=1234
+HTTP/1.1 201 Created
+Access-Control-Allow-Credentials: true
+Connection: keep-alive
+Content-Length: 335
+Content-Type: application/json; charset=utf-8
+Date: Wed, 22 Jul 2020 21:47:38 GMT
+ETag: W/"14f-z58ryIWykO3tUF+GEpspMQ44YPw"
+Vary: Origin
+X-Powered-By: Express
+
+{
+    "message": "You are now logged",
+    "sucess": true,
+    "token": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmMThiMzlhMDE3OGU0MDRmYzdiMmFjOCIsInVzZXJuYW1lIjoibW91dG9uIiwibmFtZSI6Ik1vdXRvbiBNb3JvbiIsImVtYWlsIjoibW91dG9uLm1vcm9uQGdtYWlsLmNvbSIsImlhdCI6MTU5NTQ1NDQ1OCwiZXhwIjoxNTk2MDU5MjU4fQ.c8r2e0Pxsqqc7MEMUkFEy0tzgXLnAbF8ziyjIVmtNPA"
+}
+
+* Access protected url with token
+$ http --auth-type=jwt --auth="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVmMThiMzlhMDE3OGU0MDRmYzdiMmFjOCIsInVzZXJuYW1lIjoibW91dG9uIiwibmFtZSI6Ik1vdXRvbiBNb3JvbiIsImVtYWlsIjoibW91dG9uLm1vcm9uQGdtYWlsLmNvbSIsImlhdCI6MTU5NTQ1NDQ1OCwiZXhwIjoxNTk2MDU5MjU4fQ.c8r2e0Pxsqqc7MEMUkFEy0tzgXLnAbF8ziyjIVmtNPA" localhost:3000/api/user/profile
+HTTP/1.1 200 OK
+Access-Control-Allow-Credentials: true
+Connection: keep-alive
+Content-Length: 234
+Content-Type: application/json; charset=utf-8
+Date: Wed, 22 Jul 2020 21:48:50 GMT
+ETag: W/"ea-S41VuDLg0qMFD+GobvtLmllCg5s"
+Vary: Origin
+X-Powered-By: Express
+
+{
+    "user": {
+        "__v": 0,
+        "_id": "5f18b39a0178e404fc7b2ac8",
+        "date": "2020-07-22T21:46:02.615Z",
+        "email": "mouton.moron@gmail.com",
+        "name": "Mouton Moron",
+        "password": "$2a$10$xhsVENA2l6X0wfBFqWPRxeYvBcC2pBh3GCqwzRwa4QMei72nSKboW",
+        "username": "mouton"
+    }
+}
