@@ -1,10 +1,11 @@
-import { Request, Response } from 'express'
-import bcrypt from 'bcryptjs'
-import mongoose from 'mongoose'
-import jwt from 'jsonwebtoken'
-import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE, API_UNOTHORIZED_CODE } from '../config/configuration'
-import { loggerFactory, JWT_SECRET } from './../config/configuration'
+import * as EmailValidator from 'email-validator'
 import User from '../models/user'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import mongoose from 'mongoose'
+import { API_ERROR_CODE, API_SUCCESS_CODE, API_NOT_FOUND_CODE, API_UNOTHORIZED_CODE } from '../config/configuration'
+import { Request, Response } from 'express'
+import { loggerFactory, JWT_SECRET } from './../config/configuration'
 
 const logger = loggerFactory.getLogger('controllers/userController.ts')
 
@@ -27,33 +28,46 @@ export let addUser = async (req: Request, res: Response) => {
     const { name, username, email, password, confirm_password } = req.body
 
     /* Check input data :
-     * username is set
-     * name is set
-     * password and confirmation password match.
-     * email is set
+     * username is set.
+     * name is set.
+     * password and confirmation password are set and match.
+     * email is set and has valid format.
      */
+    let success = true
+    let message = ''
     if (!username || username === '') {
-        return res.status(API_ERROR_CODE).json ({
-            success: false,
-            message: 'Username should be provided.'
-        })
+        success = false
+        message = 'Username should be provided.'
+    } else {
+
+        if (!name || name === '') {
+            success = false
+            message = 'Name should be provided.'
+        } else {
+
+            if (password === '') {
+                success = false
+                message = 'Password should be provided.'
+            } else if (password !== confirm_password) {
+                success = false
+                message = 'Passwords do not match.'
+            } else {
+
+                if (!email || email === '') {
+                    success = false
+                    message = 'Email should be provided.'
+                } else if (!EmailValidator.validate(email)) {
+                    success = false
+                    message = 'Email format is incorrect.'
+                }
+            }
+        }
     }
-    if (!name || name === '') {
+
+    if (!success) {
         return res.status(API_ERROR_CODE).json ({
             success: false,
-            message: 'Name should be provided.'
-        })
-    }
-    if (password !== confirm_password) {
-        return res.status(API_ERROR_CODE).json ({
-            success: false,
-            message: 'Passwords do not match.'
-        })
-    }
-    if (!email || email === '') {
-        return res.status(API_ERROR_CODE).json ({
-            success: false,
-            message: 'Email should be provided.'
+            message: message
         })
     }
 
