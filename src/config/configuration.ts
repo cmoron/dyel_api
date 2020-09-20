@@ -1,11 +1,15 @@
+import dotenv from 'dotenv'
 import cors from 'cors'
 import { LoggerFactory, LoggerFactoryOptions, LFService, LogGroupRule, LogLevel } from 'typescript-logging'
+
+/* Load conf from .env file. */
+dotenv.config()
 
 /* The application port. */
 export const PORT: string = process.env.PORT || '3000'
 
 /* Database connection */
-export const URI: string = 'mongodb://127.0.0.1:27017/local'
+export const URI: string = 'mongodb://' + process.env.DB_HOST + ': ' + process.env.DB_PORT
 
 /* The api response codes */
 export const API_SUCCESS_CODE = 201
@@ -13,12 +17,22 @@ export const API_ERROR_CODE = 400
 export const API_UNOTHORIZED_CODE = 401
 export const API_NOT_FOUND_CODE = 404
 
+let ssl_mongo_server = {}
+if (process.env.DB_SSL === 'true') {
+    ssl_mongo_server = { ssl: true, sslValidate: false }
+}
+
 /* Connect to database. Default timeout is 30s. */
 export const mongooseOptions = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
-    useCreateIndex: true
+    useCreateIndex: true,
+    user: process.env.DB_USER,
+    pass: process.env.DB_PASS,
+    dbName: process.env.DB_NAME,
+    authSource: process.env.DB_NAME,
+    server: ssl_mongo_server
 }
 
 /* Cors options. */

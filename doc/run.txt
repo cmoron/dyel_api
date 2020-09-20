@@ -5,6 +5,14 @@ Run a mongodb instance with docker:
     docker run -p 27017:27017 --name zn_mongo -d mongo
     yarn run watch
 
+Create a .env file in project directory
+# dev
+DB_HOST=localhost
+DB_PORT=27017
+DB_USER=
+DB_NAME=dyel
+DB_PASS=
+
 Users api example with httpie:
 
 * Register user
