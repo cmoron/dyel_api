@@ -1,0 +1,15 @@
+# Create mongodb volumes
+docker volume create mongodb
+docker volume create mongodb_config
+
+# Create mongodb network
+docker network create mongodb
+
+# Run mongodb container
+docker run -it --rm -d -v mongodb:/data/db -v mongodb_config:/data/configdb -p 27017:27017 --network mongodb --name mongodb mongo
+
+# Build dyel-api image with Dockerfile
+docker build -t dyel-api .
+
+# Run dyel-api container
+docker run --rm -p 3000:3000 --network mongodb --name dyel dyel-api

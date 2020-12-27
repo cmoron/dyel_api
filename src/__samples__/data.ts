@@ -2,7 +2,9 @@ import Block from './../models/block'
 import Exercise from './../models/exercise'
 import Group from './../models/group'
 import Session from './../models/session'
+import User from './../models/user'
 import data from './wodz.json'
+import bcrypt from 'bcryptjs'
 import { loggerFactory } from './../config/configuration'
 
 const logger = loggerFactory.getLogger('__samples__/data.ts')
@@ -206,6 +208,32 @@ async function handleGroups(sessionData: any, dbSessionId: string) {
 }
 
 /*
+ * createUsers
+ * Create samples users for developpment purpose.
+ */
+async function createUsers() {
+    return new Promise((resolve, reject) => {
+
+        const SALT_ROUNDS = 10
+        const pass : string = bcrypt.hashSync('user', SALT_ROUNDS)
+
+        const user = new User({
+            name: 'user',
+            username: 'user',
+            email: 'user@gmail.com',
+            password: pass,
+        })
+
+        user.save().then(res => {
+            resolve(res)
+        })
+        .catch(err => {
+            reject(err)
+        })
+    })
+}
+
+/*
  * Samples.
  * Parse sample json data file and register values in database.
  */
@@ -218,6 +246,11 @@ async function samples() {
     await Group.deleteMany({}, () => { logger.info('Groups cleared')})
     await Block.deleteMany({}, () => { logger.info('Blocks cleared')})
     await Exercise.deleteMany({}, () => { logger.info('Exercises cleared')})
+    await User.deleteOne({name: 'user'}, () => { logger.info('User named user cleared')})
+
+    createUsers().then(() => {
+        logger.info('Sample users created.')
+    })
 
     /* Read sessions from json */
     for (const sessionData of data.sessions) {

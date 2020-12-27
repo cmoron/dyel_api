@@ -1,0 +1,19 @@
+version: "3.8"
+services:
+  api:
+    command: ["npm", "run", "prod"]
+    environment:
+      - NODE_ENV=prod
+    depends_on:
+      - mongo
+    network_mode: host
+  mongo:
+      image: mongo
+      ports:
+        - "27017:27017"
+      volumes:
+        - mongodb:/data/db
+        - mongodb_config:/data/configdb
+volumes:
+  mongodb:
+  mongodb_config:

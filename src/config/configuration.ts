@@ -9,7 +9,7 @@ dotenv.config()
 export const PORT: string = process.env.PORT || '3000'
 
 /* Database connection */
-export const URI: string = 'mongodb://' + process.env.DB_HOST + ': ' + process.env.DB_PORT
+export const URI: string = 'mongodb://' + process.env.DB_HOST + ':' + process.env.DB_PORT
 
 /* The api response codes */
 export const API_SUCCESS_CODE = 201
@@ -17,13 +17,8 @@ export const API_ERROR_CODE = 400
 export const API_UNOTHORIZED_CODE = 401
 export const API_NOT_FOUND_CODE = 404
 
-let ssl_mongo_server = {}
-if (process.env.DB_SSL === 'true') {
-    ssl_mongo_server = { ssl: true, sslValidate: false }
-}
-
 /* Connect to database. Default timeout is 30s. */
-export const mongooseOptions = {
+export let mongooseOptions: any = {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,
@@ -31,8 +26,12 @@ export const mongooseOptions = {
     user: process.env.DB_USER,
     pass: process.env.DB_PASS,
     dbName: process.env.DB_NAME,
-    authSource: process.env.DB_NAME,
-    server: ssl_mongo_server
+    authSource: process.env.DB_NAME
+}
+
+if (process.env.DB_SSL === 'true') {
+    mongooseOptions.ssl = true
+    mongooseOptions.sslValidate = false
 }
 
 /* Cors options. */

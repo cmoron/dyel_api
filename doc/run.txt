@@ -7,7 +7,7 @@ Run a mongodb instance with docker:
 
 Create a .env file in project directory
 # dev
-DB_HOST=localhost
+DB_HOST=mongodb
 DB_PORT=27017
 DB_USER=
 DB_NAME=dyel
