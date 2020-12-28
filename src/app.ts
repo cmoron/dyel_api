@@ -40,5 +40,5 @@ app.use(routes)
 
 /* Launch app */
 const server = app.listen(conf.PORT, () => {
-    logger.info('Appp is running on http://localhost:' + conf.PORT)
+    logger.info('App is running on http://localhost:' + conf.PORT)
 })
